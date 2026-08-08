@@ -60,6 +60,15 @@ is used when the local Boolean-grid search does not find a point.
 The tests also verify coordinate boundary checking and empty reference-point
 handling.
 
+During Week 5, a larger 28x28 test case was added in response to peer-review
+feedback. The test uses multiple reference points and several query points
+across the grid. For each query point, the result of the optimized
+nearest-point search is compared with the exhaustive full search.
+
+This provides a stronger correctness check because the optimized algorithm
+must produce the same nearest-point distance as the simple exhaustive
+reference implementation on a more representative image-sized grid.
+
 ## Point-set distance tests
 
 The point-set distance tests use small manually constructed point sets.
@@ -73,6 +82,11 @@ They verify that:
 - empty point sets are rejected.
 
 The current symmetric average distance is an initial working distance measure.
+
+A second larger test was added during Week 5. It uses two 28x28 point sets containing ten active pixels. The second point set is shifted one pixel horizontally from the first, so the expected symmetric average distance is 1.0.
+
+These larger 28x28 tests were added after the first peer review suggested testing the algorithms with more representative inputs rather than relying only on very small hand-built examples.
+
 The final project will later include the required D22 and D23 distance
 measures.
 
@@ -138,16 +152,14 @@ The coverage report can be generated with:
 ```bash
 poetry run pytest --cov=digitrecognition --cov-report=term-missing
 ```
+At the end of Week 5, the project contains 40 automated tests. All 40 tests pass successfully.
 
-At the end of Week 4, the project contains 38 automated tests. All 38 tests
-pass successfully.
+Two additional 28x28 test cases were added during Week 5 in response to
+peer-review feedback. One compares the optimized nearest-point search with the exhaustive search, and the other tests the symmetric point-set distance on larger shifted point sets.
 
 The source-code test coverage is 100%.
 
-The coverage percentage does not guarantee that the program is completely
-free of errors. It confirms that every executable source-code line is
-executed by at least one test. Representative unit and integration tests are
-therefore also used to verify the actual behaviour of the algorithms.
+The coverage percentage does not guarantee that the program is completely free of errors. It confirms that every executable source-code line is executed by at least one test. Representative unit and integration tests are therefore also used to verify the actual behaviour of the algorithms.
 
 ## Code-quality analysis
 
@@ -167,13 +179,8 @@ implemented algorithms.
 
 ## Current testing limitations
 
-The current tests use small artificial images rather than genuine MNIST
-images.
+The current tests use artificial images and point sets rather than genuine MNIST images. Some tests now use 28x28 inputs matching the dimensions of MNIST images, but real MNIST data has not yet been integrated into the test suite.
 
-The integration tests currently cover only artificial representations of
-digits 1 and 7. Testing with realistic MNIST images, classification-accuracy
-measurement, and large-scale performance testing remain future work.
+The integration tests currently cover only artificial representations of digits 1 and 7. Testing with realistic MNIST images, classification-accuracy measurement, and large-scale performance testing remain future work.
 
-The current symmetric average distance is an intermediate working distance
-measure. Tests for the final D22 and D23 measures will be added when those
-measures are implemented.
+The current symmetric average distance is an intermediate working distance measure. Tests for the final D22 and D23 measures will be added when those measures are implemented.

@@ -115,3 +115,17 @@ def test_empty_reference_point_set_raises_error():
             reference_points=[],
             offsets=generate_offsets(3),
         )
+def test_symmetric_distance_on_larger_28x28_point_sets():
+    """Larger shifted point sets should have the expected distance."""
+    points_a = [
+        (6, 13),
+        (7, 13),
+        (8, 13),
+        (9, 13),
+        (10, 13),
+        (11, 13),
+        (12, 13),
+        (13, 13),
+        (14, 13),
+        (15, 13),
+    ]

@@ -128,12 +128,58 @@ def test_full_search_returns_smallest_distance():
     )
 
     assert distance == 1.0
-
-
+    
 def test_empty_reference_points_raise_error():
     """An empty reference image should raise an error."""
     with pytest.raises(ValueError):
         full_search_distance((0, 0), [])
+
+
 def test_empty_grid_is_outside():
     """A coordinate cannot be inside an empty grid."""
     assert is_inside_grid(0, 0, []) is False
+
+
+def test_nearest_point_matches_full_search_on_larger_grid():
+    """Optimized search should match exhaustive search on a 28x28 grid."""
+    reference_points = [
+        (2, 3),
+        (5, 20),
+        (10, 10),
+        (14, 18),
+        (20, 5),
+        (25, 24),
+    ]
+
+    reference_grid = [
+        [False for _ in range(28)]
+        for _ in range(28)
+    ]
+
+    for row, column in reference_points:
+        reference_grid[row][column] = True
+
+    offsets = generate_offsets(11)
+
+    test_points = [
+        (0, 0),
+        (4, 18),
+        (11, 11),
+        (18, 6),
+        (27, 27),
+    ]
+
+    for point in test_points:
+        optimized_distance = nearest_point_distance(
+            point=point,
+            reference_grid=reference_grid,
+            reference_points=reference_points,
+            offsets=offsets,
+        )
+
+        exhaustive_distance = full_search_distance(
+            point=point,
+            reference_points=reference_points,
+        )
+
+        assert optimized_distance == pytest.approx(exhaustive_distance)
