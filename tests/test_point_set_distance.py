@@ -3,6 +3,9 @@
 import pytest
 
 from digitrecognition.point_set_distance import (
+    d22_distance,
+    d23_distance,
+    d23_unnormalized_distance,
     directed_average_distance,
     symmetric_average_distance,
 )
@@ -129,3 +132,75 @@ def test_symmetric_distance_on_larger_28x28_point_sets():
         (14, 13),
         (15, 13),
     ]
+
+def test_d22_uses_larger_directed_distance():
+    """D22 should return the larger directed average distance."""
+    points_a = [(0, 0), (0, 1)]
+    grid_a = [
+        [True, True],
+    ]
+
+    points_b = [(0, 0)]
+    grid_b = [
+        [True, False],
+    ]
+
+    offsets = generate_offsets(3)
+
+    distance = d22_distance(
+        points_a=points_a,
+        grid_a=grid_a,
+        points_b=points_b,
+        grid_b=grid_b,
+        offsets=offsets,
+    )
+
+    assert distance == 0.5   
+
+def test_d23_averages_directed_distances():
+    """D23 should average the two directed average distances."""
+    points_a = [(0, 0), (0, 1)]
+    grid_a = [
+        [True, True],
+    ]
+
+    points_b = [(0, 0)]
+    grid_b = [
+        [True, False],
+    ]
+
+    offsets = generate_offsets(3)
+
+    distance = d23_distance(
+        points_a=points_a,
+        grid_a=grid_a,
+        points_b=points_b,
+        grid_b=grid_b,
+        offsets=offsets,
+    )
+
+    assert distance == 0.25 
+
+def test_d23_unnormalized_uses_directed_sums():
+    """Unnormalized D23 should use sums instead of directed averages."""
+    points_a = [(0, 0), (0, 1)]
+    grid_a = [
+        [True, True],
+    ]
+
+    points_b = [(0, 0)]
+    grid_b = [
+        [True, False],
+    ]
+
+    offsets = generate_offsets(3)
+
+    distance = d23_unnormalized_distance(
+        points_a=points_a,
+        grid_a=grid_a,
+        points_b=points_b,
+        grid_b=grid_b,
+        offsets=offsets,
+    )
+
+    assert distance == 0.5
