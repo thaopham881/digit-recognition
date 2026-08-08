@@ -220,18 +220,3 @@ def symmetric_average_distance(
         grid_b=grid_b,
         offsets=offsets,
     )
-    distance_a_to_b = directed_average_distance(
-        source_points=points_a,
-        reference_grid=grid_b,
-        reference_points=points_b,
-        offsets=offsets,
-    )
-
-    distance_b_to_a = directed_average_distance(
-        source_points=points_b,
-        reference_grid=grid_a,
-        reference_points=points_a,
-        offsets=offsets,
-    )
-
-    return max(distance_a_to_b, distance_b_to_a)

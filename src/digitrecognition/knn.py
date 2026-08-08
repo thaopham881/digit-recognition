@@ -2,7 +2,11 @@
 
 from digitrecognition.image_representation import BooleanGrid, Point
 from digitrecognition.offsets import Offset
-from digitrecognition.point_set_distance import symmetric_average_distance
+from digitrecognition.point_set_distance import (
+    d22_distance,
+    d23_distance,
+    d23_unnormalized_distance,
+)
 
 
 TrainingImage = tuple[int, list[Point], BooleanGrid]
@@ -15,6 +19,7 @@ def find_k_nearest(
     training_images: list[TrainingImage],
     k: int,
     offsets: list[Offset],
+    distance_measure: str = "d22",
 ) -> list[Neighbour]:
     """Find the k training images closest to a test image.
 
@@ -25,13 +30,16 @@ def find_k_nearest(
             a label, coordinate list, and Boolean grid.
         k: Number of nearest neighbours to return.
         offsets: Precomputed search offsets sorted by distance.
+        distance_measure: Distance measure to use. Supported values are
+            "d22", "d23", and "d23_unnormalized".
 
     Returns:
         A list containing distance-label pairs, ordered from nearest
         to farthest.
 
     Raises:
-        ValueError: If k is invalid or the training set is empty.
+        ValueError: If k is invalid, the training set is empty, or the
+            distance measure is unknown.
     """
     if not training_images:
         raise ValueError("Training image list cannot be empty.")
@@ -42,10 +50,21 @@ def find_k_nearest(
     if k > len(training_images):
         raise ValueError("k cannot exceed the number of training images.")
 
+    distance_functions = {
+        "d22": d22_distance,
+        "d23": d23_distance,
+        "d23_unnormalized": d23_unnormalized_distance,
+    }
+
+    if distance_measure not in distance_functions:
+        raise ValueError("Unknown distance measure.")
+
+    distance_function = distance_functions[distance_measure]
+
     neighbours: list[Neighbour] = []
 
     for label, training_points, training_grid in training_images:
-        distance = symmetric_average_distance(
+        distance = distance_function(
             points_a=test_points,
             grid_a=test_grid,
             points_b=training_points,
@@ -101,14 +120,29 @@ def classify(
     training_images: list[TrainingImage],
     k: int,
     offsets: list[Offset],
+    distance_measure: str = "d22",
 ) -> tuple[int, list[Neighbour]]:
-    """Classify a test image and return its nearest neighbours."""
+    """Classify a test image and return its nearest neighbours.
+
+    Args:
+        test_points: Active points from the test image.
+        test_grid: Boolean representation of the test image.
+        training_images: Labelled reference images.
+        k: Number of nearest neighbours.
+        offsets: Precomputed search offsets sorted by distance.
+        distance_measure: Distance measure to use. Supported values are
+            "d22", "d23", and "d23_unnormalized".
+
+    Returns:
+        The predicted label and the selected nearest neighbours.
+    """
     neighbours = find_k_nearest(
         test_points=test_points,
         test_grid=test_grid,
         training_images=training_images,
         k=k,
         offsets=offsets,
+        distance_measure=distance_measure,
     )
 
     prediction = predict_label(neighbours)

@@ -2,14 +2,15 @@
 
 import pytest
 
+from digitrecognition.offsets import generate_offsets
 from digitrecognition.point_set_distance import (
     d22_distance,
     d23_distance,
     d23_unnormalized_distance,
     directed_average_distance,
+    directed_sum_distance,
     symmetric_average_distance,
 )
-from digitrecognition.offsets import generate_offsets
 
 
 def test_identical_point_sets_have_zero_directed_distance():
@@ -118,6 +119,8 @@ def test_empty_reference_point_set_raises_error():
             reference_points=[],
             offsets=generate_offsets(3),
         )
+
+
 def test_symmetric_distance_on_larger_28x28_point_sets():
     """Larger shifted point sets should have the expected distance."""
     points_a = [
@@ -132,6 +135,39 @@ def test_symmetric_distance_on_larger_28x28_point_sets():
         (14, 13),
         (15, 13),
     ]
+
+    points_b = [
+        (6, 14),
+        (7, 14),
+        (8, 14),
+        (9, 14),
+        (10, 14),
+        (11, 14),
+        (12, 14),
+        (13, 14),
+        (14, 14),
+        (15, 14),
+    ]
+
+    grid_a = [[False for _ in range(28)] for _ in range(28)]
+    grid_b = [[False for _ in range(28)] for _ in range(28)]
+
+    for row, column in points_a:
+        grid_a[row][column] = True
+
+    for row, column in points_b:
+        grid_b[row][column] = True
+
+    distance = symmetric_average_distance(
+        points_a=points_a,
+        grid_a=grid_a,
+        points_b=points_b,
+        grid_b=grid_b,
+        offsets=generate_offsets(11),
+    )
+
+    assert distance == 1.0
+
 
 def test_d22_uses_larger_directed_distance():
     """D22 should return the larger directed average distance."""
@@ -155,7 +191,8 @@ def test_d22_uses_larger_directed_distance():
         offsets=offsets,
     )
 
-    assert distance == 0.5   
+    assert distance == 0.5
+
 
 def test_d23_averages_directed_distances():
     """D23 should average the two directed average distances."""
@@ -179,7 +216,8 @@ def test_d23_averages_directed_distances():
         offsets=offsets,
     )
 
-    assert distance == 0.25 
+    assert distance == 0.25
+
 
 def test_d23_unnormalized_uses_directed_sums():
     """Unnormalized D23 should use sums instead of directed averages."""
@@ -204,3 +242,25 @@ def test_d23_unnormalized_uses_directed_sums():
     )
 
     assert distance == 0.5
+
+
+def test_directed_sum_rejects_empty_source():
+    """Directed sum distance should reject an empty source point set."""
+    with pytest.raises(ValueError):
+        directed_sum_distance(
+            source_points=[],
+            reference_points=[(0, 0)],
+            reference_grid=[[True]],
+            offsets=generate_offsets(3),
+        )
+
+
+def test_directed_sum_rejects_empty_reference():
+    """Directed sum distance should reject an empty reference point set."""
+    with pytest.raises(ValueError):
+        directed_sum_distance(
+            source_points=[(0, 0)],
+            reference_points=[],
+            reference_grid=[[False]],
+            offsets=generate_offsets(3),
+        )

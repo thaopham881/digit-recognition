@@ -180,3 +180,78 @@ def test_classify_returns_prediction_and_neighbours():
         (0.0, 5),
         (1.0, 2),
     ]
+
+def test_find_k_nearest_can_use_d23():
+    """Nearest-neighbour search should support the D23 distance measure."""
+    test_points = [(0, 0), (0, 1)]
+    test_grid = [
+        [True, True],
+    ]
+
+    training_images = [
+        create_training_image(
+            label=5,
+            points=[(0, 0)],
+            height=1,
+            width=2,
+        ),
+    ]
+
+    neighbours = find_k_nearest(
+        test_points=test_points,
+        test_grid=test_grid,
+        training_images=training_images,
+        k=1,
+        offsets=generate_offsets(3),
+        distance_measure="d23",
+    )
+
+    assert neighbours == [(0.25, 5)]
+
+def test_find_k_nearest_can_use_d23_unnormalized():
+    """Nearest-neighbour search should support unnormalized D23."""
+    test_points = [(0, 0), (0, 1)]
+    test_grid = [
+        [True, True],
+    ]
+
+    training_images = [
+        create_training_image(
+            label=5,
+            points=[(0, 0)],
+            height=1,
+            width=2,
+        ),
+    ]
+
+    neighbours = find_k_nearest(
+        test_points=test_points,
+        test_grid=test_grid,
+        training_images=training_images,
+        k=1,
+        offsets=generate_offsets(3),
+        distance_measure="d23_unnormalized",
+    )
+
+    assert neighbours == [(0.5, 5)]
+
+
+def test_unknown_distance_measure_raises_error():
+    """Unknown distance-measure names should be rejected."""
+    training_images = [
+        create_training_image(1, [(1, 1)]),
+    ]
+
+    with pytest.raises(ValueError):
+        find_k_nearest(
+            test_points=[(1, 1)],
+            test_grid=[
+                [False, False, False],
+                [False, True, False],
+                [False, False, False],
+            ],
+            training_images=training_images,
+            k=1,
+            offsets=generate_offsets(3),
+            distance_measure="something_else",
+        )

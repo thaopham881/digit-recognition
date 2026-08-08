@@ -80,9 +80,15 @@ poetry run pylint src/digitrecognition demo.py
 The current command-line demonstration uses small artificial 5 × 5 images
 rather than the complete MNIST dataset.
 
-The current symmetric average distance is a working intermediate distance
-measure. The exact required D22 and D23 point-set distance measures still need
-to be completed.
+The project now implements three point-set distance measures:
+
+- D22, which takes the larger of the two directed average nearest-point distances;
+- D23, which averages the two directed average nearest-point distances;
+- an unnormalized D23 variation in which the directed nearest-point distances
+  are summed instead of divided by the number of source points.
+
+The k-nearest-neighbours classifier can use any of these three distance
+measures. D22 remains the default distance measure.
 
 MNIST integration, classification-accuracy measurement, and large-scale
 performance testing also remain under development.
