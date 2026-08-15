@@ -201,7 +201,7 @@ With 500 training images and 20 test images, one experiment achieved:
 * 95% classification accuracy;
 * approximately 54 seconds execution time.
 
-This experiment demonstrates that the implemented point-set algorithms can be used to recognize real handwritten digit images. It is not intended to achieve state-of-the-art MNIST performance.
+This experiment demonstrates that the implemented point-set algorithms can be used to recognize real handwritten digit images. It is not intended to achieve state-of-the-art MNIST accuracy or performance.
 
 ## Current limitations
 
@@ -228,7 +228,8 @@ digit-recognition/
 │   ├── weekly_report_2.md
 │   ├── weekly_report_3.md
 │   ├── weekly_report_4.md
-│   └── weekly_report_5.md
+│   ├── weekly_report_5.md
+│   └── weekly_report_6.md
 ├── src/
 │   └── digitrecognition/
 │       ├── __init__.py
@@ -268,6 +269,7 @@ digit-recognition/
 * [Weekly Report 3](docs/weekly_report_3.md)
 * [Weekly Report 4](docs/weekly_report_4.md)
 * [Weekly Report 5](docs/weekly_report_5.md)
+* [Weekly Report 6](docs/weekly_report_6.md)
 
 ## Peer review
 
@@ -285,12 +287,12 @@ Peer-review feedback on this project suggested adding larger and more representa
 
 ## Next steps
 
-The remaining development and documentation tasks include:
+The remaining project tasks include:
 
-* document the MNIST integration and max-heap optimization;
-* document the final testing results;
-* compare the implemented distance measures where practical;
-* document the performance limitations of the point-set approach;
-* complete the Week 6 report;
-* complete the final project documentation;
-* prepare the repository for the final peer review and submission.
+* review the repository for outdated information;
+* complete the second peer review;
+* address any final peer-review feedback;
+* run the complete tests, coverage analysis, and Pylint before submission;
+* prepare the repository for final submission.
+
+If time permits, additional small experiments can be performed to compare D22, D23, and unnormalized D23 on the same MNIST subsets.
