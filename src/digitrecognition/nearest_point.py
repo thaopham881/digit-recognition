@@ -64,13 +64,14 @@ def nearest_point_distance(
     reference_points: list[Point],
     offsets: list[Offset],
 ) -> float:
-    """Find the nearest point using local offsets and a full-search fallback.
+    """Find the globally nearest reference point.
 
-    The function first checks nearby positions in the Boolean grid. The
-    offsets must be sorted from the smallest distance to the largest.
+    The function first searches nearby positions using precomputed offsets.
 
-    If no nearby point is found, the function performs an exhaustive search
-    through the reference coordinate list.
+    Because the local search area is square, a point just outside the square
+    can sometimes be closer than a point near one of the square's corners.
+    If the first local match could be beaten by a point outside the square,
+    an exhaustive search is used to guarantee the globally nearest distance.
 
     Args:
         point: The active point being compared.
@@ -79,9 +80,16 @@ def nearest_point_distance(
         offsets: Precomputed offsets sorted by distance.
 
     Returns:
-        The Euclidean distance to the nearest active reference point.
+        The Euclidean distance to the globally nearest active reference point.
     """
     point_row, point_column = point
+
+    search_radius = max(
+        max(abs(row_offset), abs(column_offset))
+        for row_offset, column_offset, _ in offsets
+    )
+
+    nearest_possible_outside_distance = search_radius + 1
 
     for row_offset, column_offset, distance in offsets:
         candidate_row = point_row + row_offset
@@ -95,6 +103,15 @@ def nearest_point_distance(
             continue
 
         if reference_grid[candidate_row][candidate_column]:
-            return distance
+            if distance <= nearest_possible_outside_distance:
+                return distance
 
-    return full_search_distance(point, reference_points)
+            return full_search_distance(
+                point,
+                reference_points,
+            )
+
+    return full_search_distance(
+        point,
+        reference_points,
+    )

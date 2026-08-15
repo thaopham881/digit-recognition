@@ -183,3 +183,38 @@ def test_nearest_point_matches_full_search_on_larger_grid():
         )
 
         assert optimized_distance == pytest.approx(exhaustive_distance)
+
+def test_local_corner_point_does_not_hide_closer_outside_point():
+    """Search should still return the globally nearest reference point."""
+    grid = [[False for _ in range(15)] for _ in range(15)]
+
+    # Query point is in the centre.
+    query_point = (7, 7)
+
+    # This point is inside an 11x11 local search square:
+    # displacement (5, 5), distance sqrt(50) ≈ 7.07.
+    grid[12][12] = True
+
+    # This point is outside the local square but is actually closer:
+    # displacement (6, 0), distance 6.
+    grid[13][7] = True
+
+    reference_points = [
+        (12, 12),
+        (13, 7),
+    ]
+
+    optimized_distance = nearest_point_distance(
+        point=query_point,
+        reference_grid=grid,
+        reference_points=reference_points,
+        offsets=generate_offsets(11),
+    )
+
+    exhaustive_distance = full_search_distance(
+        point=query_point,
+        reference_points=reference_points,
+    )
+
+    assert optimized_distance == pytest.approx(exhaustive_distance)
+    assert optimized_distance == pytest.approx(6.0)

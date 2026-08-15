@@ -1,6 +1,7 @@
 """Classify point-set images using k-nearest neighbours."""
 
 from digitrecognition.image_representation import BooleanGrid, Point
+from digitrecognition.max_heap import KNearestHeap
 from digitrecognition.offsets import Offset
 from digitrecognition.point_set_distance import (
     d22_distance,
@@ -22,6 +23,9 @@ def find_k_nearest(
     distance_measure: str = "d22",
 ) -> list[Neighbour]:
     """Find the k training images closest to a test image.
+
+    A fixed-size binary max-heap stores only the current k best
+    neighbours while the training images are processed.
 
     Args:
         test_points: Active points from the test image.
@@ -60,8 +64,7 @@ def find_k_nearest(
         raise ValueError("Unknown distance measure.")
 
     distance_function = distance_functions[distance_measure]
-
-    neighbours: list[Neighbour] = []
+    nearest_heap = KNearestHeap(capacity=k)
 
     for label, training_points, training_grid in training_images:
         distance = distance_function(
@@ -72,11 +75,9 @@ def find_k_nearest(
             offsets=offsets,
         )
 
-        neighbours.append((distance, label))
+        nearest_heap.add((distance, label))
 
-    neighbours.sort(key=lambda neighbour: (neighbour[0], neighbour[1]))
-
-    return neighbours[:k]
+    return nearest_heap.to_sorted_list()
 
 
 def predict_label(neighbours: list[Neighbour]) -> int:
