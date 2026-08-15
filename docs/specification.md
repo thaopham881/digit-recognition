@@ -34,7 +34,15 @@ For an individual classification, the program will display:
 - the `k` nearest training images;
 - the labels and distances of those neighboring images.
 
-The program will also contain a performance-testing mode. It will measure classification accuracy and execution time using a configurable part of the test set. The goal is to test the complete set of 10,000 test images if this is computationally practical.
+The program also contains a small MNIST evaluation mode that measures
+classification accuracy and execution time using a selected subset of the
+test set.
+
+Because the implemented point-set distance calculation is computationally
+expensive, evaluation on the complete set of 10,000 MNIST test images was
+not practical within the scope of the project. A smaller real-MNIST
+experiment is therefore used to demonstrate the complete classification
+pipeline.
 
 ## 4. Algorithms and data structures
 
@@ -100,7 +108,11 @@ For each test image, the program will:
 
 If two labels receive the same number of votes, the program will use the total or smallest distance of the tied neighbors as a tie-breaking rule. A deterministic final tie-breaking rule will also be added.
 
-A bounded heap from Python's standard library may be used to retain the current `k` nearest neighbors efficiently. The classifier itself and all point-set distance calculations will be implemented as part of the project.
+A fixed-size binary max-heap is used to retain the current k nearest
+neighbours efficiently. The heap is implemented manually as part of the
+project rather than using a ready-made k-nearest-neighbours implementation.
+
+The classifier itself and all point-set distance calculations are also implemented as part of the project.
 
 The program will not use a ready-made k-NN classifier, ready-made point-set distance implementation, or pre-built matrix operations for the central algorithm.
 

@@ -4,106 +4,157 @@
 
 The project uses automated unit and integration tests implemented with pytest.
 
-Tests are developed alongside the program code. Most tests use small,
-manually constructed images and point sets so that the expected results can be calculated directly. Larger 28 × 28 artificial inputs are also used to provide more representative tests of image-sized data.
+Tests are developed alongside the program code. Small manually constructed images and point sets are used where possible so that expected results can be calculated independently.
 
-The tests currently cover:
+Larger 28 × 28 artificial inputs are also used to test the algorithms with image dimensions similar to MNIST.
 
-- conversion of grayscale images into coordinate lists and Boolean grids;
-- validation of grayscale thresholds and image dimensions;
-- generation of coordinate offsets;
-- ordering of offsets by Euclidean distance;
-- optimized nearest-point searches;
-- exhaustive nearest-point fallback searches;
-- directed point-set distance calculations;
-- D22 distance calculations;
-- D23 distance calculations;
-- the unnormalized D23 variation;
-- selection of the k nearest reference images;
-- selection of different point-set distance measures in k-nearest neighbours;
-- majority voting and tie-breaking in k-nearest neighbours classification;
-- invalid and empty input handling;
-- integration of the main classification components.
+During Week 6, the test suite was extended to cover:
+
+* the fixed-size binary max-heap;
+* loading MNIST images;
+* loading MNIST labels;
+* invalid MNIST files;
+* MNIST preprocessing;
+* classification evaluation;
+* the MNIST experiment;
+* the updated heap-based k-nearest-neighbour implementation.
+
+The complete test suite currently contains **72 tests**.
+
+All 72 tests pass.
+
+## Running the tests
+
+Run the complete test suite with:
+
+```bash
+poetry run pytest
+```
+
+The current result is:
+
+```text
+72 passed
+```
+
+Run the tests with coverage using:
+
+```bash
+poetry run pytest --cov=digitrecognition --cov-report=term-missing
+```
+
+The current source-code coverage is **99%**.
+
+The only uncovered statement is the direct script entry-point call in `mnist_experiment.py`:
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+The algorithmic implementation itself is covered by the automated tests.
+
+## Current test distribution
+
+The current tests are divided approximately as follows:
+
+| Test file                      |  Tests |
+| ------------------------------ | -----: |
+| `test_evaluation.py`           |      5 |
+| `test_image_representation.py` |      6 |
+| `test_integration.py`          |      2 |
+| `test_knn.py`                  |     12 |
+| `test_max_heap.py`             |      6 |
+| `test_mnist_experiment.py`     |      1 |
+| `test_mnist_loader.py`         |     11 |
+| `test_nearest_point.py`        |     11 |
+| `test_offset.py`               |      6 |
+| `test_point_set_distance.py`   |     12 |
+| **Total**                      | **72** |
 
 ## Image representation tests
 
-The image representation tests verify that active pixels are correctly stored in both the coordinate list and the Boolean grid.
+The image-representation tests verify that grayscale images are correctly converted into:
 
-The tests also cover:
+* coordinate lists;
+* Boolean grids.
 
-- pixels equal to the selected threshold;
-- empty images;
-- thresholds outside the range 0–255;
-- images whose rows have unequal lengths.
+The tests cover:
 
-These tests verify that grayscale input is converted into the point-set
-representations required by the later distance calculations.
+* active and inactive pixels;
+* pixels equal to the selected threshold;
+* empty images;
+* thresholds outside the range 0–255;
+* images whose rows have unequal lengths.
+
+These tests verify the preprocessing step used before point-set distance calculations.
 
 ## Offset generation tests
 
-The offset tests verify that a square search area contains the correct number of offsets.
+The offset tests verify that coordinate offsets are generated correctly for the local nearest-point search.
 
-They also verify that:
+The tests verify:
 
-- the centre position has distance zero and is checked first;
-- the offsets are sorted by increasing Euclidean distance;
-- diagonal distances are calculated correctly;
-- even, zero, and otherwise invalid search sizes are rejected.
+* the expected number of offsets;
+* the centre coordinate has distance zero;
+* the centre is checked first;
+* offsets are sorted by increasing Euclidean distance;
+* diagonal distances are calculated correctly;
+* invalid search sizes are rejected.
 
-The offset ordering is important because the nearest-point algorithm examines
-local candidate positions in increasing order of Euclidean distance.
+The ordering is important because the nearest-point search examines candidate positions from shortest to longest distance.
 
 ## Nearest-point search tests
 
-The nearest-point tests verify that the algorithm finds points:
+The nearest-point tests verify both the optimized local search and the exhaustive reference search.
 
-- at the same coordinate;
-- at horizontally or vertically adjacent coordinates;
-- at diagonal coordinates;
-- outside the precomputed local search area.
+The tests cover points:
 
-The distant-point case verifies that the exhaustive coordinate-list fallback is used when the local Boolean-grid search does not find a point.
+* at exactly the same coordinate;
+* horizontally or vertically adjacent;
+* diagonally adjacent;
+* farther away from the source coordinate;
+* outside the local search area.
 
 The tests also verify:
 
-- coordinate boundary checking;
-- empty reference-point handling;
-- agreement between the optimized search and exhaustive search.
+* coordinate boundary checking;
+* empty-reference handling;
+* exhaustive fallback behaviour;
+* agreement between optimized and exhaustive search in representative cases.
 
-During Week 5, a larger 28 × 28 test case was added in response to
-peer-review feedback.
+During Week 5, a larger 28 × 28 test was added after peer-review feedback.
 
-The test contains several reference points distributed across the grid and several query points. For every query point, the result of
-`nearest_point_distance` is compared with the result of
-`full_search_distance`.
+The larger test contains multiple reference and query points. Results from the optimized search are compared with results from the exhaustive implementation.
 
-This provides a stronger correctness check because the optimized algorithm must produce the same result as the simple exhaustive reference implementation on a more representative image-sized input.
+This provides a stronger correctness check with image-sized inputs rather than relying only on very small examples.
 
 ## Point-set distance tests
 
-The point-set distance tests use manually constructed point sets whose
-expected distances can be calculated directly.
+The point-set distance tests use manually constructed point sets whose expected values can be calculated directly.
 
-The tests verify that:
+The tests cover:
 
-- identical point sets have distance zero;
-- shifted points produce the expected Euclidean distance;
-- directed nearest-point distances are averaged correctly;
-- empty point sets are rejected;
-- D22 selects the larger of the two directed average distances;
-- D23 averages the two directed average distances;
-- the unnormalized D23 variation uses directed sums instead of directed
-  averages.
+* identical point sets;
+* shifted point sets;
+* directed average nearest-point distance;
+* directed sum nearest-point distance;
+* empty point-set validation;
+* D22;
+* D23;
+* unnormalized D23;
+* the compatibility wrapper for D22.
 
-For example, one test uses the following point sets:
+For example, consider:
 
 ```text
 A = [(0, 0), (0, 1)]
 B = [(0, 0)]
 ```
 
-The directed average distance from A to B is `0.5`, while the directed
-average distance from B to A is `0.0`.
+The directed average from A to B is `0.5`.
+
+The directed average from B to A is `0.0`.
 
 Therefore:
 
@@ -112,168 +163,217 @@ D22 = max(0.5, 0.0) = 0.5
 D23 = (0.5 + 0.0) / 2 = 0.25
 ```
 
-For the unnormalized D23 variation, the directed sums are used instead. The test therefore expects a value of `0.5`.
+The unnormalized variation uses the directed sums instead.
 
-A larger point-set test was also added during Week 5. It uses two 28 × 28 point sets containing ten active pixels. The second point set is shifted one pixel horizontally from the first, so the expected D22 distance is `1.0`.
+A 28 × 28 point-set test was also added during Week 5. The second point set is shifted horizontally by one pixel, allowing an expected D22 value of `1.0` to be verified on a more representative input.
 
-These larger tests were added after the first peer review suggested testing the algorithms with more representative inputs instead of relying only on very small hand-built examples.
+## K-nearest-neighbours tests
 
-The earlier `symmetric_average_distance` function is also tested through its role as a compatibility wrapper for D22.
+The k-nearest-neighbour tests verify both neighbour selection and classification.
 
-## K-nearest neighbours tests
+The tests cover:
 
-The k-nearest neighbours tests verify that:
+* returning exactly `k` neighbours;
+* ordering neighbours from nearest to farthest;
+* majority voting;
+* vote ties;
+* total-distance tie-breaking;
+* final numerical-label tie-breaking;
+* invalid `k`;
+* empty training sets;
+* empty neighbour lists;
+* complete prediction;
+* selecting D22;
+* selecting D23;
+* selecting unnormalized D23;
+* rejecting an unknown distance-measure name.
 
-- reference images are sorted from nearest to farthest;
-- only the requested number of neighbours is returned;
-- majority voting selects the most common label;
-- total neighbour distance is used to resolve a vote tie;
-- the smaller numerical label is used as a final deterministic tie-breaker;
-- invalid values of `k` are rejected;
-- an empty training-image list is rejected;
-- an empty neighbour list is rejected;
-- the complete classification function returns both the predicted label and the selected neighbours.
+During Week 6, k-nearest-neighbour selection was changed from storing all distances and sorting them to maintaining only the current `k` nearest candidates in a max-heap.
 
-During Week 5, the classifier was extended so that the distance measure can be selected.
+Tests verify that this change preserves the expected classification behaviour.
 
-Additional tests verify that:
+## Max-heap tests
 
-- D23 can be selected by `find_k_nearest`;
-- the unnormalized D23 variation can be selected by `find_k_nearest`;
-- an unknown distance-measure name raises a `ValueError`.
+The fixed-size max-heap has its own unit tests.
 
-For the D23 selection test, a manually constructed example has an expected
-distance of `0.25`.
+These verify that:
 
-For the unnormalized D23 selection test, the same point sets produce an
-expected distance of `0.5`.
+* a new heap is empty;
+* items can be inserted until capacity is reached;
+* only the `k` smallest distances are retained;
+* a worse candidate is ignored when the heap is already full;
+* equal distances use the smaller numerical label deterministically;
+* invalid heap capacity raises a `ValueError`.
 
-These tests verify that the k-nearest neighbours implementation does not only contain the distance functions separately, but can actually use the selected distance function during classification.
+Testing the heap separately is important because it is now an algorithmic component of the k-nearest-neighbour implementation.
+
+## MNIST loader tests
+
+The MNIST loader tests verify the loading of compressed IDX image and label files.
+
+The tests create small artificial IDX files so that behaviour can be checked without depending on the complete external MNIST dataset.
+
+The tests cover:
+
+* correctly loading image files;
+* correctly loading label files;
+* limiting the number of loaded items;
+* invalid limits;
+* incorrect image magic numbers;
+* incorrect label magic numbers;
+* invalid image dimensions;
+* incomplete image data;
+* incomplete label data;
+* malformed files.
+
+This verifies that the program detects invalid MNIST input instead of silently accepting corrupted data.
+
+## Evaluation tests
+
+The evaluation tests cover the functions that prepare training images and evaluate predictions.
+
+The tests verify that:
+
+* grayscale training images are converted into the required point-set representations;
+* labels remain associated with their corresponding images;
+* multiple images can be prepared;
+* predictions are compared with their expected labels;
+* the number of correct predictions and calculated accuracy are returned correctly.
+
+These tests use small controlled examples rather than running the complete MNIST experiment.
+
+This keeps the automated tests fast and deterministic.
+
+## MNIST experiment test
+
+The MNIST experiment has a separate test that verifies the experiment command's overall control flow.
+
+The test checks that the experiment:
+
+* loads the required data;
+* prepares training images;
+* runs evaluation;
+* reports the resulting statistics.
+
+The test does not repeatedly perform the full 500-training-image experiment because that experiment takes approximately one minute on the development computer.
+
+Instead, the expensive components are replaced with controlled test values so that the command can be tested quickly.
 
 ## Integration testing
 
-In addition to unit tests, the project contains integration tests that verify the complete classification pipeline.
+The project also contains integration tests for the complete artificial-image classification pipeline.
 
-The integration tests begin with grayscale image data and execute the
-following steps together:
+These tests begin with grayscale image data and perform the following steps together:
 
-1. convert the grayscale images into coordinate lists and Boolean grids;
-2. generate the sorted local-search offsets;
+1. convert the images into coordinate lists and Boolean grids;
+2. generate nearest-point search offsets;
 3. calculate point-set distances;
-4. find the k nearest labelled reference images;
+4. find the k nearest labelled images;
 5. perform majority voting;
-6. return the predicted digit label.
+6. return the predicted digit.
 
-The tests use two artificial test images representing digits 1 and 7. Each test image is classified against a small training set containing two examples of digit 1 and two examples of digit 7.
+The tests use artificial examples representing digits 1 and 7.
 
-The test for digit 1 verifies that:
+They verify that the complete pipeline correctly classifies both examples and returns the expected neighbours.
 
-- the predicted label is 1;
-- exactly three neighbours are returned when `k = 3`;
-- the neighbours are ordered by increasing distance.
+These tests differ from individual unit tests because several modules are exercised together.
 
-The test for digit 7 verifies the same behaviour and expects the predicted label to be 7.
+## Real MNIST experiment
 
-The integration tests currently use the default D22 distance measure.
+In addition to the automated tests, the program has been run manually on real MNIST data.
 
-The integration tests can be run separately with:
-
-```bash
-poetry run pytest tests/test_integration.py -v
-```
-
-These tests differ from the individual unit tests because they exercise
-multiple program modules together, from grayscale image conversion to the final classification result.
-
-## Test count
-
-After the Week 5 additions, the project contains 46 automated tests.
-
-The complete test suite can be run with:
-
-```bash
-poetry run pytest
-```
-
-The current test suite result is:
+The experiment was executed with:
 
 ```text
-46 passed
+Training images: 500
+Test images: 20
+Threshold: 128
+k: 3
+Offset size: 11
+Distance measure: d22
 ```
 
-The Week 5 additions include:
+The result was:
 
-- a larger 28 × 28 nearest-point test comparing optimized and exhaustive
-  search;
-- a larger 28 × 28 point-set distance test;
-- a D22-specific test;
-- a D23-specific test;
-- an unnormalized D23 test;
-- a test selecting D23 in k-nearest neighbours;
-- a test selecting the unnormalized D23 variation;
-- a test rejecting an unknown distance-measure name.
-
-## Test coverage
-
-Test coverage is measured using pytest-cov.
-
-The coverage report can be generated with:
-
-```bash
-poetry run pytest --cov=digitrecognition --cov-report=term-missing
+```text
+Correct predictions: 19/20
+Accuracy: 95.00%
+Elapsed time: 54.02 seconds
 ```
 
-Earlier coverage measurements reached 100% source-code coverage.
+This is not treated as an automated accuracy test.
 
-Because new D22, D23, and distance-selection code was added during Week 5, the coverage command should be run again after these changes to confirm the current final coverage percentage.
+The sample of only 20 test images is too small to establish reliable general MNIST accuracy, and the experiment is relatively slow.
 
-Coverage alone does not guarantee that the program is completely free of errors. It only measures whether executable lines have been exercised by the tests. For this reason, tests with manually known expected results, representative 28 × 28 inputs, and integration tests are also used to verify the actual behaviour of the algorithms.
+Instead, it demonstrates that the complete implementation can process and classify genuine MNIST images successfully.
 
-## Code-quality analysis
+## Coverage
 
-Pylint is used to analyse source-code quality.
+Coverage is measured using pytest-cov.
+
+The current coverage result is:
+
+```text
+Name                                           Cover
+----------------------------------------------------
+src/digitrecognition/__init__.py                100%
+src/digitrecognition/evaluation.py              100%
+src/digitrecognition/image_representation.py    100%
+src/digitrecognition/knn.py                     100%
+src/digitrecognition/max_heap.py                100%
+src/digitrecognition/mnist_experiment.py         98%
+src/digitrecognition/mnist_loader.py            100%
+src/digitrecognition/nearest_point.py            100%
+src/digitrecognition/offsets.py                  100%
+src/digitrecognition/point_set_distance.py       100%
+----------------------------------------------------
+TOTAL                                             99%
+```
+
+The uncovered line in `mnist_experiment.py` is the script entry point used when the program is executed directly as a module.
+
+The underlying `main` functionality is tested.
+
+## Code quality
+
+Pylint is used in addition to the automated tests.
 
 It can be run with:
 
 ```bash
-poetry run pylint src/digitrecognition demo.py
+poetry run pylint src tests
 ```
 
-Pylint is used together with the automated tests to identify code-quality
-issues that do not necessarily cause test failures.
+The current Pylint score is:
 
-A final Pylint run will be performed after the remaining Week 5 changes.
+```text
+9.56/10
+```
 
-## Peer-review feedback
+Pylint is not a correctness test, but it helps identify code-quality, formatting, and maintainability issues.
 
-The first peer review reported that the project was structured clearly,
-documented well, and that the existing tests passed successfully.
+## Peer-review response
 
-The reviewer also suggested adding tests with larger or more representative
-inputs because many of the original tests used small hand-built examples.
+The first peer review suggested that the project should include more representative test inputs.
 
-This feedback was addressed during Week 5 by adding:
+Earlier tests relied heavily on very small point sets and grids because their expected values were easy to calculate manually.
 
-- a 28 × 28 nearest-point search test;
-- a 28 × 28 point-set distance test.
+In response, larger 28 × 28 tests were added during Week 5.
 
-The new tests preserve manually verifiable behaviour while using input sizes that are more representative of the 28 × 28 MNIST images that will later be processed by the program.
+These tests more closely resemble MNIST image dimensions while still keeping the expected behaviour controlled.
+
+The feedback demonstrated that high code coverage alone does not guarantee that test inputs are representative.
 
 ## Current testing limitations
 
-The current tests still use artificial images and point sets rather than genuine MNIST images.
+The current tests provide strong coverage of the implemented code, but some limitations remain.
 
-Some tests now use 28 × 28 inputs matching the dimensions of MNIST images, but real MNIST data has not yet been integrated into the test suite.
+The main limitations are:
 
-The integration tests currently cover only artificial representations of digits 1 and 7.
+* the full 60,000-image MNIST training set is not used during automated testing;
+* classification accuracy has only been demonstrated on a small experiment;
+* performance is not tested automatically because timing results depend on the computer;
+* D22, D23, and unnormalized D23 have not been systematically compared on large real-MNIST samples;
+* additional randomized comparisons between optimized and exhaustive nearest-point searching could provide further validation.
 
-The following testing tasks therefore remain:
-
-- testing preprocessing with genuine MNIST images;
-- testing classification with all digit classes from 0 to 9;
-- measuring classification accuracy;
-- comparing the accuracy of D22, D23, and the unnormalized D23 variation;
-- measuring execution time on larger MNIST subsets;
-- investigating performance when many reference images are used.
-
-These tests will be added as MNIST integration and performance evaluation are implemented.
+Despite these limitations, the test suite covers all main algorithmic components individually as well as the complete classification pipeline.
